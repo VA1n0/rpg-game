@@ -1,0 +1,6 @@
+flask
+flask-jwt-extended
+supabase
+werkzeug
+python-dotenv
+gunicorn

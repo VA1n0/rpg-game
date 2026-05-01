@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abyssal Realm: Forge & Destiny</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="bg-dark">
+
+    <div id="pet-skill-modal" class="modal-overlay hidden">
+        <div class="advisor-modal" style="width: 400px;">
+            <h2 style="color:#1eff00; font-size:2rem; margin-top:0;">🧬 НАВИЧКИ СУПУТНИКА</h2>
+            <p style="color:#aaa; margin-bottom: 20px;">Оберіть пасивну здібність. Вони додаються до статів вашого героя.</p>
+            <div id="pet-skill-options" style="display:flex; flex-direction:column; gap:10px;"></div>
+            <button class="rpg-btn" style="margin-top:25px; width:100%;" onclick="closePetSkillModal()">ЗАКРИТИ</button>
+        </div>
+    </div>
+
+    <div id="custom-popup" class="custom-popup-overlay">
+        <div id="popup-box" class="custom-popup-box popup-win">
+            <div id="popup-icon" class="popup-icon">🏆</div>
+            <h2 id="popup-title" class="popup-title" style="color:var(--gold);">ПЕРЕМОГА</h2>
+            <p id="popup-text" class="popup-text">Текст...</p>
+            <button class="rpg-btn" style="width:200px; padding:10px;" onclick="closePopup()">ЗРОЗУМІЛО</button>
+        </div>
+    </div>
+
+    <div id="story-overlay" class="modal-overlay hidden">
+        <div class="story-container">
+            <div id="story-avatar" class="story-avatar"></div>
+            <div id="story-box" class="story-dialogue-box">
+                <div><h3 id="story-name" class="story-name">Ім'я</h3><p id="story-text" class="story-text" style="font-size:1.2rem; line-height:1.6; font-style:italic;">Текст діалогу...</p></div>
+                <div style="text-align: right; margin-top: 25px;"><button class="rpg-btn" style="width: auto; padding: 10px 40px; background:var(--blood);" onclick="nextStoryLine()">⚔️ БІЙ ➔</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="auth-screen" class="main-screen">
+        <div class="auth-box">
+            <h1>ABYSSAL REALM</h1>
+            <div id="login-form">
+                <form onsubmit="loginUser(event)"><input type="email" id="l-email" placeholder="Пошта" required><input type="password" id="l-pass" placeholder="Пароль" required><button type="submit" class="rpg-btn">УВІЙТИ В БЕЗОДНЮ</button></form>
+                <p style="color:var(--gold); cursor:pointer; margin-top:20px; font-family:'Cinzel';" onclick="toggleAuth('reg-form')">Створити нового героя</p>
+            </div>
+            <div id="reg-form" class="hidden">
+                <form onsubmit="registerUser(event)"><input type="text" id="r-user" placeholder="Нікнейм" required><input type="email" id="r-email" placeholder="Пошта" required><input type="password" id="r-pass" placeholder="Пароль" required><button type="submit" class="rpg-btn">ЗАРЕЄСТРУВАТИСЬ</button></form>
+                <p style="color:#aaa; cursor:pointer; margin-top:20px;" onclick="toggleAuth('login-form')">Повернутись</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="class-screen" class="hidden main-screen" style="flex-direction: column;">
+        <h1 style="font-size: 3.5rem;">ОБЕРІТЬ СВІЙ ШЛЯХ</h1><input type="text" id="char-name" placeholder="Ім'я вашого героя" style="width:400px; text-align:center; margin-bottom: 40px; font-size:1.5rem; padding:20px;">
+        <div style="display:flex; gap: 25px;"><div class="class-card" onclick="selectClass('Некромант')"><h3>Некромант</h3><p>Магія Тіней</p></div><div class="class-card" onclick="selectClass('Воїн')"><h3>Воїн</h3><p>Сталь і Сила</p></div><div class="class-card" onclick="selectClass('Маг')"><h3>Маг</h3><p>Стихійний Руйнівник</p></div><div class="class-card" onclick="selectClass('Асасин')"><h3>Асасин</h3><p>Смертельні Крити</p></div></div>
+    </div>
+
+    <div id="game-screen" class="hidden main-screen" style="flex-direction: column;">
+        <div class="header">
+            <div class="hero-badge">
+                <div class="avatar" id="ui-avatar"></div>
+                <div>
+                    <h2 style="margin:0;"><span id="ui-name">Hero</span> <span style="font-size:1rem; color:#aaa;">(Lvl <span id="ui-lvl">1</span>)</span></h2>
+                    <div style="color:var(--gold); font-family:'Cinzel'; font-weight:bold; font-size:1rem;">Power Score: <span id="ui-ps">0</span></div>
+                    <div class="hp-bar-container"><div class="hp-bar-fill" id="ui-hp-bar"></div></div>
+                    <span style="font-size:12px; color:#aaa; font-weight:bold;" id="ui-hp">200 / 200</span>
+                    <div style="font-size:0.8rem; color:#00ffff; margin-top:2px;">EXP: <span id="ui-exp">0 / 100</span></div>
+                </div>
+            </div>
+            <div style="display:flex; gap:40px; align-items:center;">
+                <div style="font-size:2.5rem; font-weight:bold; color:#00ffff; text-shadow:0 0 10px #00ffff;">💎 <span id="ui-diamonds" style="color:#fff;">0</span></div>
+                <div style="font-size:2.5rem; font-weight:bold; color:var(--gold);">🪙 <span id="ui-gold" style="color:#fff;">0</span></div>
+                <button class="rpg-btn" style="width:150px; margin:0; padding:12px; background:var(--blood); color:#fff; border:1px solid #ff0000;" onclick="localStorage.removeItem('rpg_token'); location.reload();">ВИЙТИ</button>
+            </div>
+        </div>
+        <div class="ui-container">
+            <div class="sidebar">
+                <button class="tab-btn active" onclick="showTab('world-map')">📖 СЮЖЕТ (КАРТА)</button>
+                <button class="tab-btn" onclick="showTab('survival')" style="color:#00ffff;">🛡️ ВИЖИВАННЯ</button>
+                <button class="tab-btn" onclick="showTab('shop')" style="color:#ffcc00; text-shadow:0 0 5px #ffcc00;">💰 КРАМНИЦЯ</button>
+                <button class="tab-btn" onclick="showTab('inventory-craft')">⚒️ КУЗНЯ ТА ЛУТ</button>
+                <button class="tab-btn" onclick="showTab('skills')" style="color:#ff00ff;">🔮 НАВИЧКИ</button>
+                <button class="tab-btn" onclick="showTab('gacha-pets')">💎 ГАЧА ТА ПЕТИ</button>
+                <button class="tab-btn" onclick="showTab('achievements')" style="color:var(--gold);">🏆 ДОСЯГНЕННЯ</button>
+            </div>
+            <div class="content-area">
+                <div id="tab-world-map" class="tab-panel"><div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;"><h2 style="margin: 0; font-size: 2rem;">📜 ГОЛОВНА ІСТОРІЯ</h2><span style="color: #888; font-family: 'Cinzel'; font-size: 1.2rem;">Етап: <span id="map-progress" style="color: var(--gold); font-weight:bold;">1 / 50</span></span></div><div id="map-container" style="display:flex; flex-wrap:wrap; gap:15px; justify-content:flex-start;"></div></div>
+                <div id="tab-survival" class="tab-panel hidden"><h2 style="font-size: 2rem; color:#00ffff;">Арена Виживання</h2><div style="background:#111; border:2px solid #00ffff; padding:30px; border-radius:10px; text-align:center; margin-top:30px;"><h3 style="color:#fff; font-size:1.5rem;">Ваш рекорд: Хвиля <span id="survival-record" style="color:var(--gold);">1</span></h3><button class="rpg-btn" style="background:linear-gradient(to bottom, #00ffff, #008888); color:#000; width:300px; font-size:1.5rem;" onclick="startSurvival()">⚔️ ПОЧАТИ ВИЖИВАННЯ</button></div></div>
+                
+                <div id="tab-achievements" class="tab-panel hidden">
+                    <h2 style="font-size: 2.5rem; color:var(--gold); margin-bottom: 10px;">🏆 ЗАЛ СЛАВИ</h2>
+                    <p style="color:#aaa; margin-bottom:20px;">Виконуйте завдання та отримуйте преміум-валюту 💎 Алмази!</p>
+                    <div id="achievements-list" style="display:flex; flex-direction:column; gap:15px;"></div>
+                </div>
+                
+                <div id="tab-shop" class="tab-panel hidden">
+                    <div style="display:flex; gap:15px; margin-bottom:30px; border-bottom:1px solid #333; padding-bottom:20px;">
+                        <button class="rpg-btn" style="width:200px; margin:0;" onclick="generateShop('weapon')">⚔️ ЗБРОЯ ТА МАГІЯ</button>
+                        <button class="rpg-btn" style="width:200px; margin:0; background:linear-gradient(to bottom, #555, #222); color:#fff;" onclick="generateShop('armor')">🛡️ ВАЖКА БРОНЯ</button>
+                        <button class="rpg-btn" style="width:200px; margin:0; background:linear-gradient(to bottom, #1eff00, #004400); color:#fff; border-color:#1eff00;" onclick="generateShop('eggs')">🥚 ЯЙЦЯ ПЕТІВ</button>
+                    </div>
+                    <div id="shop-items-container" style="display:flex; flex-wrap:wrap; gap:15px;"></div>
+                </div>
+
+                <div id="tab-skills" class="tab-panel hidden"><h2 style="font-size: 2rem; color:#ff00ff;">ГРИМУАР ТІНЕЙ</h2><p style="color:#aaa;">Оберіть до 4 активних навичок для бою.</p><div id="skill-tree-list" style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-top:20px;"></div></div>
+                <div id="tab-inventory-craft" class="tab-panel hidden">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:40px;">
+                        <div>
+                            <h2 style="font-size: 1.8rem;">🛡️ ВАШ ГЕРОЙ</h2>
+                            <div class="inv-grid"><div class="equip-slot"><h3>ЗБРОЯ</h3><span id="inv-weapon">Порожньо</span></div><div class="equip-slot"><h3>БРОНЯ</h3><span id="inv-armor">Порожньо</span></div></div>
+                            <div style="background:#111; padding:25px; border-radius:8px; margin-top:20px; border:1px solid #333;">
+                                <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-size:1.2rem;"><span>АТАКА:</span><span id="stat-atk" style="color:var(--gold); font-weight:bold;">0</span></div>
+                                <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-size:1.2rem;"><span>ЗАХИСТ:</span><span id="stat-def" style="color:var(--gold); font-weight:bold;">0</span></div>
+                                <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-size:1.2rem;"><span>КРИТ:</span><span id="stat-crit" style="color:#ff3333; font-weight:bold;">5%</span></div>
+                                <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-size:1.2rem;"><span>УХИЛЕННЯ:</span><span id="stat-dodge" style="color:#00ffff; font-weight:bold;">5%</span></div>
+                                <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-size:1.2rem;"><span>ВАМПІРИЗМ:</span><span id="stat-vamp" style="color:#1eff00; font-weight:bold;">0%</span></div>
+                                <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-size:1.2rem;"><span>ОТРУТА:</span><span id="stat-psn" style="color:#00ff00; font-weight:bold;">0%</span></div>
+                                <div style="display:flex; justify-content:space-between; font-size:1.2rem;"><span>ШИПИ:</span><span id="stat-thrn" style="color:#ff00ff; font-weight:bold;">0%</span></div>
+                            </div>
+                        </div>
+                        <div><h2 style="font-size: 1.8rem;">⚒️ КУЗНЯ ЕФІРУ</h2><div style="background:rgba(255,255,255,0.03); padding:30px; border-radius:8px; border:1px dashed #555; text-align:center;"><p style="color:#aaa; font-size:0.9rem;">Зберіть 5 однакових предметів однієї рідкості!</p><div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:20px;" id="merge-buttons"></div></div></div>
+                    </div>
+                    <h2 style="margin-top:50px;">🎒 РЮКЗАК (ЛУТ)</h2><div id="inv-backpack" style="display:flex; flex-wrap:wrap; gap:15px; padding:20px; background:#0a0a0c; border-radius:8px; border:1px solid #222; min-height:150px;"></div>
+                </div>
+                <div id="tab-gacha-pets" class="tab-panel hidden">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:40px;">
+                        <div class="gacha-zone"><h2 style="margin:0; font-size:2rem; color:var(--legendary);">СУНДУК БОГІВ</h2><div id="chest-visual" onclick="openChest()">📦</div><div style="font-size:1.5rem; margin-bottom:10px;">Ваші скрині: <span id="gacha-chests" style="color:var(--gold);">0</span></div><button class="rpg-btn" onclick="openChest()">ВІДКРИТИ (500 🪙)</button></div>
+                        <div><h2 style="margin:0 0 20px 0; font-size:2rem; color:#1eff00;">СУПУТНИКИ</h2><p style="color:#aaa;">Рідкісні яйця шукайте в Крамниці!</p><div id="pet-list" style="display:flex; flex-wrap:wrap; gap:20px;"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ОНОВЛЕНИЙ ІНТЕРФЕЙС БОЮ -->
+    <div id="battle-screen" class="hidden main-screen">
+        <div class="battle-container">
+            <div id="player-container" style="position:relative;">
+                <h2 style="text-align:center; font-size:2rem;">ГЕРОЙ</h2>
+                <!-- ТУТ ТВОЯ ПОЛОСКА ХП -->
+                <div class="hp-bar-container" style="margin: 0 auto 20px auto; width: 280px; height: 18px;">
+                    <div class="hp-bar-fill" id="b-p-hp-bar" style="background: var(--blood);"></div>
+                </div>
+                <div class="card-3d" id="b-p-card"></div>
+                <div id="b-p-pet" style="position:absolute; bottom: -10px; right: -40px; font-size: 5rem; z-index: 10; filter: drop-shadow(0 0 10px #1eff00); display: none;"></div>
+            </div>
+            <div style="text-align:center;"><h1 style="font-size:7rem; color:var(--blood); margin:0;">VS</h1></div>
+            <div id="enemy-container">
+                <h2 id="b-e-name" style="text-align:center; color:var(--blood); font-size:2rem;">МОНСТР</h2>
+                <!-- ПОЛОСКА ХП ВОРОГА -->
+                <div class="hp-bar-container" style="margin: 0 auto 20px auto; width: 280px; height: 18px;">
+                    <div class="hp-bar-fill" id="b-e-hp"></div>
+                </div>
+                <div class="card-3d enemy" id="enemy-card"></div>
+            </div>
+        </div>
+        <div class="skills-panel"><div class="battle-skills-grid" id="battle-skills"></div><div id="b-log"></div></div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
